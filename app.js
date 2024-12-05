@@ -56,7 +56,7 @@ async function testAPIConnection() {
                 'Authorization': `Bearer ${config.API_KEY}`
             },
             body: JSON.stringify({
-                model: "gpt-4",
+                model: "gpt-3.5-turbo",
                 messages: [
                     {
                         role: "system",
@@ -98,7 +98,7 @@ async function getAnswerFromChatGPT(question) {
                 'Authorization': `Bearer ${config.API_KEY}`
             },
             body: JSON.stringify({
-                model: "gpt-4",
+                model: "gpt-3.5-turbo",
                 messages: [
                     {
                         role: "system",
@@ -116,20 +116,16 @@ async function getAnswerFromChatGPT(question) {
         if (!response.ok) {
             const errorData = await response.json();
             console.error('API Error:', errorData);
-            if (errorData.error?.code === 'rate_limit_exceeded') {
-                return "Rate limit exceeded. Please try again in about an hour. The truth can't be rushed.";
-            }
-            throw new Error(`API Error: ${errorData.error?.message || 'Unknown error'}`);
+            showAnswer(`Error: ${errorData.error?.message || 'Unknown API error'}. Status: ${response.status}`);
+            return;
         }
 
         const data = await response.json();
         return data.choices[0].message.content.trim();
     } catch (error) {
         console.error('Error getting answer:', error);
-        if (error.message.includes('rate limit')) {
-            return "Rate limit exceeded. Please try again in about an hour. The truth can't be rushed.";
-        }
-        throw error;
+        showAnswer(`Error: ${error.message}`);
+        return null;
     }
 }
 
@@ -217,19 +213,21 @@ async function requestMotionPermission() {
 
 // Handle shake event
 async function handleShake() {
-    if (questionInput.value.trim() === '') {
-        showAnswer(config.ERRORS.EMPTY_QUESTION);
-        return;
-    }
-
     try {
+        const question = questionInput.value;
+        validateQuestion(question);
+        
         setLoading(true);
         shakeAnimation();
-        const question = validateQuestion(questionInput.value);
+        
         const answer = await getAnswerFromChatGPT(question);
-        showAnswer(answer, true);
+        if (answer) {
+            showAnswer(answer, true);
+            historyManager.addItem({ question, answer });
+            questionInput.value = '';
+        }
     } catch (error) {
-        showAnswer(error.message || config.ERRORS.API_ERROR);
+        showAnswer(`Error: ${error.message}`);
     } finally {
         setLoading(false);
     }
