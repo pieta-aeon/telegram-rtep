@@ -234,13 +234,30 @@ async function handleShake() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('App initializing...');
+    
+    // Check if config is properly loaded
+    if (!config || !config.API_KEY || config.API_KEY === 'your-openai-api-key-here') {
+        console.error('API key not configured. Please set up config.js with your OpenAI API key.');
+        showAnswer('Error: API key not configured. Please set up config.js with your OpenAI API key.');
+        return;
+    }
+
     testAPIConnection();
     requestMotionPermission();
     
     // Event Listeners
-    sendButton.addEventListener('click', handleShake);
+    console.log('Setting up event listeners...');
+    sendButton.addEventListener('click', () => {
+        console.log('Send button clicked');
+        handleShake();
+    });
+    
     questionInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleShake();
+        if (e.key === 'Enter') {
+            console.log('Enter key pressed');
+            handleShake();
+        }
     });
 
     // Input validation
@@ -249,6 +266,8 @@ document.addEventListener('DOMContentLoaded', () => {
             questionInput.value = questionInput.value.slice(0, config.MAX_QUESTION_LENGTH);
         }
     });
+
+    console.log('App initialization complete');
 });
 
 // Handle theme changes
