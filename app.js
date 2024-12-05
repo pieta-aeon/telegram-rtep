@@ -112,13 +112,20 @@ async function getAnswerFromChatGPT(question) {
         });
 
         if (!response.ok) {
-            throw new Error(config.ERRORS.API_ERROR);
+            const error = await response.json();
+            if (error.error && error.error.code === 'rate_limit_exceeded') {
+                return "Rate limit exceeded. Please try again in about an hour. The truth can't be rushed.";
+            }
+            throw new Error(`API Error: ${error.error?.message || 'Unknown error'}`);
         }
 
         const data = await response.json();
         return data.choices[0].message.content.trim();
     } catch (error) {
         console.error('Error getting answer:', error);
+        if (error.message.includes('rate limit')) {
+            return "Rate limit exceeded. Please try again in about an hour. The truth can't be rushed.";
+        }
         throw error;
     }
 }
