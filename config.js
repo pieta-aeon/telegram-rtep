@@ -1,7 +1,7 @@
 // Configuration template file
 // Copy this file to config.js and replace the API key with your own
 const config = {
-    API_KEY: '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',
+    API_KEY: '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',
     MAX_HISTORY_ITEMS: 5,
     ERRORS: {
         API_ERROR: "The spirits are temporarily unavailable. Try again later.",
