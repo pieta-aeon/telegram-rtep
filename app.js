@@ -56,7 +56,7 @@ async function testAPIConnection() {
                 'Authorization': `Bearer ${config.API_KEY}`
             },
             body: JSON.stringify({
-                model: "gpt-4-0125-preview",
+                model: "gpt-4",
                 messages: [
                     {
                         role: "system",
@@ -72,7 +72,9 @@ async function testAPIConnection() {
         });
 
         if (!response.ok) {
-            throw new Error(config.ERRORS.API_ERROR);
+            const errorData = await response.json();
+            console.error('API Error:', errorData);
+            throw new Error(`API Error: ${errorData.error?.message || 'Unknown error'}`);
         }
 
         const data = await response.json();
@@ -96,7 +98,7 @@ async function getAnswerFromChatGPT(question) {
                 'Authorization': `Bearer ${config.API_KEY}`
             },
             body: JSON.stringify({
-                model: "gpt-4-0125-preview",
+                model: "gpt-4",
                 messages: [
                     {
                         role: "system",
@@ -112,11 +114,12 @@ async function getAnswerFromChatGPT(question) {
         });
 
         if (!response.ok) {
-            const error = await response.json();
-            if (error.error && error.error.code === 'rate_limit_exceeded') {
+            const errorData = await response.json();
+            console.error('API Error:', errorData);
+            if (errorData.error?.code === 'rate_limit_exceeded') {
                 return "Rate limit exceeded. Please try again in about an hour. The truth can't be rushed.";
             }
-            throw new Error(`API Error: ${error.error?.message || 'Unknown error'}`);
+            throw new Error(`API Error: ${errorData.error?.message || 'Unknown error'}`);
         }
 
         const data = await response.json();
