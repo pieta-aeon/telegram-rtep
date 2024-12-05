@@ -52,7 +52,7 @@ async function testAPIConnection() {
         const response = await fetch(`${config.API_URL}/health`);
 
         if (!response.ok) {
-            throw new Error('Health check failed');
+            throw new Error(`API Error: ${response.status}`);
         }
 
         const data = await response.json();
@@ -60,16 +60,16 @@ async function testAPIConnection() {
         showAnswer("Ready to reveal secrets...");
     } catch (error) {
         console.error('API Connection Test Failed:', error);
-        showAnswer(`Error: ${error.message || 'Connection test failed'}`);
+        showAnswer(`Error: ${error.message || 'Failed to connect to server'}`);
     } finally {
         setLoading(false);
     }
 }
 
-// Function to get answer from backend
+// Function to get answer from ChatGPT
 async function getAnswerFromChatGPT(question) {
     try {
-        showAnswer('Asking the spirits...');
+        showAnswer('Connecting to API...');
         const response = await fetch(`${config.API_URL}/api/chat`, {
             method: 'POST',
             headers: {
@@ -79,28 +79,28 @@ async function getAnswerFromChatGPT(question) {
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(e => ({ error: 'Failed to parse error response' }));
-            const errorMessage = `Error: ${errorData.error || 'Unknown error'}`;
-            console.error('API Error:', errorData);
+            const errorData = await response.json().catch(e => ({ error: { message: 'Failed to parse error response' } }));
+            const errorMessage = `API Error (${response.status}): ${errorData.error?.message || 'Unknown error'}`;
+            console.error(errorMessage, errorData);
             showAnswer(errorMessage);
             return null;
         }
 
         const data = await response.json().catch(e => {
             console.error('Failed to parse API response:', e);
-            showAnswer('Error: Failed to parse response');
+            showAnswer('Error: Failed to parse API response');
             return null;
         });
 
         if (!data || !data.answer) {
             console.error('Invalid API response format:', data);
-            showAnswer('Error: Invalid response format');
+            showAnswer('Error: Invalid API response format');
             return null;
         }
 
         return data.answer;
     } catch (error) {
-        const errorMessage = `Error: ${error.message || 'Failed to connect to server'}`;
+        const errorMessage = `Error: ${error.message || 'Unknown error occurred'}`;
         console.error('API call failed:', error);
         showAnswer(errorMessage);
         return null;
