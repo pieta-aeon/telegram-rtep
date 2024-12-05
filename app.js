@@ -53,7 +53,7 @@ async function testAPIConnection() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${config.OPENAI_API_KEY}`
+                'Authorization': `Bearer ${config.API_KEY}`
             },
             body: JSON.stringify({
                 model: "gpt-4-0125-preview",
@@ -93,7 +93,7 @@ async function getAnswerFromChatGPT(question) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${config.OPENAI_API_KEY}`
+                'Authorization': `Bearer ${config.API_KEY}`
             },
             body: JSON.stringify({
                 model: "gpt-4-0125-preview",
