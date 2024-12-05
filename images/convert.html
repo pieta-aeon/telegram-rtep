@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator</title>
+</head>
+<body>
+    <canvas id="canvas192" width="192" height="192"></canvas>
+    <canvas id="canvas512" width="512" height="512"></canvas>
+    <img src="8ball Sprite.png" id="source" style="display:none;">
+    <script>
+        window.onload = function() {
+            const img = document.getElementById('source');
+            const canvas192 = document.getElementById('canvas192');
+            const canvas512 = document.getElementById('canvas512');
+            const ctx192 = canvas192.getContext('2d');
+            const ctx512 = canvas512.getContext('2d');
+
+            // Draw the first frame of the sprite (assuming it's square)
+            ctx192.drawImage(img, 0, 0, img.height, img.height, 0, 0, 192, 192);
+            ctx512.drawImage(img, 0, 0, img.height, img.height, 0, 0, 512, 512);
+
+            // Save the canvases as PNG files
+            ['canvas192', 'canvas512'].forEach(id => {
+                const canvas = document.getElementById(id);
+                const link = document.createElement('a');
+                link.download = `icon-${id.slice(6)}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        };
+    </script>
+</body>
+</html>
