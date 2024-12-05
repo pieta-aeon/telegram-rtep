@@ -49,35 +49,10 @@ function shakeAnimation() {
 async function testAPIConnection() {
     try {
         setLoading(true);
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${config.API_KEY}`,
-                'OpenAI-Organization': 'org-AF7ZQp6bVXrKBBUNMAPRtBDj'
-            },
-            body: JSON.stringify({
-                model: "gpt-3.5-turbo",
-                messages: [
-                    {
-                        role: "system",
-                        content: "You are a snarky fortune teller who actually answers questions but with attitude and insults. Always provide the real answer but be a jerk about it. Keep responses under 20 words."
-                    },
-                    {
-                        role: "user",
-                        content: "Test connection"
-                    }
-                ],
-                max_tokens: 150,
-                temperature: 0.7
-            })
-        });
+        const response = await fetch(`${config.API_URL}/health`);
 
         if (!response.ok) {
-            const errorData = await response.json();
-            console.error('API Error:', errorData);
-            showAnswer(`Error: ${errorData.error?.message || 'Unknown API error'}. Status: ${response.status}`);
-            return;
+            throw new Error('Health check failed');
         }
 
         const data = await response.json();
@@ -91,57 +66,41 @@ async function testAPIConnection() {
     }
 }
 
-// Function to get answer from ChatGPT
+// Function to get answer from backend
 async function getAnswerFromChatGPT(question) {
     try {
-        showAnswer('Connecting to API...');
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        showAnswer('Asking the spirits...');
+        const response = await fetch(`${config.API_URL}/api/chat`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${config.API_KEY}`,
-                'OpenAI-Organization': 'org-AF7ZQp6bVXrKBBUNMAPRtBDj'
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                model: "gpt-3.5-turbo",
-                messages: [
-                    {
-                        role: "system",
-                        content: "You are a snarky fortune teller who actually answers questions but with attitude and insults. Always provide the real answer but be a jerk about it. Keep responses under 20 words. Examples: 'Yes it's going to rain, genius. Pack an umbrella unless you enjoy looking like a drowned rat', 'Of course you'll get the job, when hell freezes over', 'Yes, they're cheating on you. What did you expect with that personality?', 'You'll live to 85, unfortunately for everyone else', 'Your business will succeed... in burning through your savings'. Be direct, insulting, but actually answer the question asked."
-                    },
-                    {
-                        role: "user",
-                        content: question
-                    }
-                ],
-                max_tokens: 150,
-                temperature: 0.7
-            })
+            body: JSON.stringify({ question })
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(e => ({ error: { message: 'Failed to parse error response' } }));
-            const errorMessage = `API Error (${response.status}): ${errorData.error?.message || 'Unknown error'}`;
-            console.error(errorMessage, errorData);
+            const errorData = await response.json().catch(e => ({ error: 'Failed to parse error response' }));
+            const errorMessage = `Error: ${errorData.error || 'Unknown error'}`;
+            console.error('API Error:', errorData);
             showAnswer(errorMessage);
             return null;
         }
 
         const data = await response.json().catch(e => {
             console.error('Failed to parse API response:', e);
-            showAnswer('Error: Failed to parse API response');
+            showAnswer('Error: Failed to parse response');
             return null;
         });
 
-        if (!data || !data.choices || !data.choices[0]?.message?.content) {
+        if (!data || !data.answer) {
             console.error('Invalid API response format:', data);
-            showAnswer('Error: Invalid API response format');
+            showAnswer('Error: Invalid response format');
             return null;
         }
 
-        return data.choices[0].message.content.trim();
+        return data.answer;
     } catch (error) {
-        const errorMessage = `Error: ${error.message || 'Unknown error occurred'}`;
+        const errorMessage = `Error: ${error.message || 'Failed to connect to server'}`;
         console.error('API call failed:', error);
         showAnswer(errorMessage);
         return null;
